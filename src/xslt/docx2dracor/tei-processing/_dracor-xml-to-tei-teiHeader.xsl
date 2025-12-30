@@ -24,7 +24,7 @@
  <xsl:variable name="multiple-items-separator-regex">;\s</xsl:variable>
  <xsl:variable name="year-regex">^\d{4}$</xsl:variable>
  <xsl:variable name="not-before-after-regex">^not\sbefore\s(\d{4}),\snot\safter\s(\d{4})$</xsl:variable>
- <xsl:variable name="author-persName-default-lang">lat</xsl:variable>
+ <xsl:variable name="author-persName-default-lang">la</xsl:variable>
 
  <xsl:variable name="rows" as="map(xs:string, xs:integer)">
   <xsl:map>
