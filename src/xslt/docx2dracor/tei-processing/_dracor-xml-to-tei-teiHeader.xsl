@@ -308,7 +308,7 @@
    </xsl:when>
    <xsl:when test="xpef:is-empty($cell)" />
    <xsl:when test="$row-key = 'work-title'">
-    <title xmlns="http://www.tei-c.org/ns/1.0" type="main">
+    <title xmlns="http://www.tei-c.org/ns/1.0">
      <xsl:apply-templates select="$cell" mode="tei" />
     </title>
    </xsl:when>
