@@ -22,6 +22,7 @@
   <xsl:mode on-no-match="shallow-copy" name="sp"/>
   <xsl:mode on-no-match="shallow-copy" name="opener"/>
   <xsl:mode on-no-match="shallow-skip" name="closer"/>
+  <xsl:mode on-no-match="shallow-copy" name="closer-and-argument"/>
   <xsl:mode on-no-match="shallow-copy" name="epigraph"/>
   <xsl:mode on-no-match="shallow-skip" name="epigraph-bibl"/>
   
@@ -30,11 +31,11 @@
   
   <xsl:variable name="div-heads" select="$divs/*[1]"/>
   
-  <xsl:template match="tei:div[*[1]/text()[normalize-space()!=''][1]/normalize-space() = $div-heads]">
+  <xsl:template match="tei:div[*[1]/normalize-space(string-join(text(), ' ')) = $div-heads]">
     <xsl:variable name="head" select="*[1]" />
-    <xsl:variable name="head-text" select="$head/text()[normalize-space()!=''][1]/normalize-space()" />
+    <xsl:variable name="head-text" select="$head/normalize-space(string-join(text(), ' '))" />
     <xsl:variable name="div" select="$divs[*[1] = $head-text]" />
-    <xsl:variable name="element-name" select="if($div/@type= ('titlePage', 'epigraph')) then $div/@type else name()" />
+    <xsl:variable name="element-name" select="if($div/@type= ('titlePage', 'epigraph', 'closer')) then $div/@type else name()" />
 <!--    <xsl:variable name="element-name" select="name()"/>-->
     
     <xsl:element name="{$element-name}">
@@ -44,7 +45,8 @@
       </xsl:if>
       <xsl:choose>
         <xsl:when test="$div/@type = 'titlePage'">
-          <xsl:copy-of select="$div/*[1]/following-sibling::node()" />
+          <xsl:copy-of select="$div/tei:titlePage/@*" />
+          <xsl:copy-of select="$div/tei:titlePage/node()" />
         </xsl:when>
         <xsl:when test="$div/sp[@who]">
           <xsl:copy-of select="$head" />
@@ -65,11 +67,27 @@
             <bibl><xsl:apply-templates mode="epigraph-bibl" /></bibl>
           </cit>
         </xsl:when>
+        <xsl:when test="$div/@type = 'closer'">
+          <xsl:choose>
+            <xsl:when test="tei:argument">
+              <xsl:apply-templates mode="closer-and-argument" select="tei:head" />
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:apply-templates mode="closer" />
+            </xsl:otherwise>
+          </xsl:choose>
+         
+        </xsl:when>
         <xsl:otherwise>
           <xsl:apply-templates />
         </xsl:otherwise>
       </xsl:choose>
     </xsl:element>
+    <xsl:if test="$div/@type = 'closer' and tei:argument">
+      <tei:closer>
+        <xsl:apply-templates mode="closer" select="tei:argument" />
+      </tei:closer>
+    </xsl:if>
     
   </xsl:template>
   
@@ -84,6 +102,15 @@
     <xsl:if test="position() ne 1 and position() != last()"><lb /></xsl:if>
     <xsl:apply-templates /><xsl:if test="position() != last()"><xsl:text> </xsl:text></xsl:if>
   </xsl:template>
+  
+  <xsl:template match="tei:head" mode="closer-and-argument">
+    <xsl:apply-templates />
+  </xsl:template>
+  
+  <xsl:template match="tei:argument[count(tei:p) eq 1]" mode="closer">
+    <xsl:apply-templates select="tei:p/text()" />
+  </xsl:template>
+
   
   <xsl:template match="tei:head" mode="epigraph">
     <p><xsl:apply-templates /></p>

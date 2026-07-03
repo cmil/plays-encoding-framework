@@ -21,9 +21,10 @@
  <xsl:param name="path" select="'data/images/single/'"/>
  <xsl:param name="extension" select="'jpg'"/>
  
- <xsl:template match="tei:TEI/tei:teiHeader">
+ <xsl:template match="tei:TEI[tei:text//tei:pb]/tei:teiHeader">
+  <xsl:variable name="document-id" select="head( (ancestor::tei:TEI/@xml:id, following-sibling::tei:text[@xml:id]/substring-before(@xml:id, '.') )) "/>
   <xsl:copy-of select="." />
-  <tei:facsimile xml:id="{ancestor::tei:TEI/@xml:id}.facs">
+  <tei:facsimile xml:id="{$document-id}.facs">
    <xsl:for-each select="/tei:TEI/tei:text//tei:pb">
      <xsl:variable name="n" select="@xml:id"/>
     <tei:surface xml:id="{$n}.surf" corresp="#{$n}">

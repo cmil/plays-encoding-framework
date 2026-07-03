@@ -20,6 +20,17 @@
  <xsl:output method="xml" indent="yes" exclude-result-prefixes="tei" />
  <xsl:mode on-no-match="shallow-skip"/>
  
+ <xsl:template match="/">
+  <xsl:choose>
+   <xsl:when test="tei:teiCorpus">
+    <xsl:apply-templates />
+   </xsl:when>
+   <xsl:when test="tei:TEI">
+    <xsl:copy-of select="tei:TEI" />
+   </xsl:when>
+  </xsl:choose>
+ </xsl:template>
+ 
  <xsl:template match="tei:teiCorpus">
   <TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
    <xsl:copy-of select="@*" />
