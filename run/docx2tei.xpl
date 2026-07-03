@@ -105,11 +105,41 @@
  <xlog:store output-directory="{$output-directory-path}/{$text-id}/tei" base-uri="{$base-uri}" debug="true" file-name="{$output-file-name}.xml" />
 
  <p:variable name="dracor-file-stem" select="if(/data/dracor/@file-stem) then /data/dracor/@file-stem else $output-file-name" href="{$data-file-path}" />
+ 
+ <p:group xmlns:p="http://www.w3.org/ns/xproc" use-when="false()">
+  <p:identity message="========================"/>
+  <p:identity message="|:-    docx2tei    -:|"/>
+  <p:identity message="   ::  option  $debug-path = {$debug-path}  :: "/>
+  <p:identity message="   ::  option  $base-uri = {$base-uri}  :: "/>
+  <p:identity message="   ::  option  $data-directory-path = {$data-directory-path}  :: "/>
+  <p:identity message="   ::  option  $data-file-path = {$data-file-path}  :: "/>
+  <p:identity message="   ::  option  $output-directory-path = {$output-directory-path}  :: "/>
+  <p:identity message="   ::  option  $output-file-name = {$output-file-name}  :: "/>
+  <p:identity message="   ::  variable  $debug = {$debug}  :: "/>
+  <p:identity message="   ::  variable  $debug-path-uri = {$debug-path-uri}  :: "/>
+  <p:identity message="   ::  variable  $steps = {$steps}  :: "/>
+  <p:identity message="   ::  variable  $text-id = {$text-id}  :: "/>
+  <p:identity message="   ::  variable  $source-debug-path = {$source-debug-path}  :: "/>
+  <p:identity message="   ::  variable  $dracor-file-stem = {$dracor-file-stem}  :: "/>
+  <p:identity message="========================"/>
+ </p:group>
+ 
+ <xtei:convert
+  output-directory-path="{$output-directory-path}/{$text-id}/evt" 
+  data-file-path="{$data-file-path}"
+  text-id="{$text-id}"
+  debug-path="{if($debug) then $debug-path || '/' || $text-id || '/convert/evt' else ()}" 
+  base-uri="{$base-uri}" 
+  output-file-name="{$output-file-name}" target="EVT">
+  <p:with-input port="source" pipe="result@tei" />
+ </xtei:convert>
+ <xlog:store p:use-when="false()" output-directory="{$output-directory-path}/{$text-id}/evt" base-uri="{$base-uri}" debug="true" file-name="{$dracor-file-stem}.xml" />
+ 
  <xtei:convert 
   output-directory-path="{$output-directory-path}" 
   data-file-path="{$data-file-path}"
   text-id="{$text-id}"
-  debug-path="{$debug-path}" 
+  debug-path="{if($debug) then $debug-path || '/' || $text-id || '/convert/dracor' else ()}" 
   base-uri="{$base-uri}" 
   output-file-name="{$output-file-name}" target="DraCor">
   <p:with-input port="source" pipe="result@tei" />
@@ -119,7 +149,7 @@
  <xtei:convert 
   output-directory-path="{$output-directory-path}" 
   data-file-path="{$data-file-path}" 
-  debug-path="{$debug-path}" 
+  debug-path="{if($debug) then $debug-path || '/' || $text-id || '/convert/text' else ()}" 
   base-uri="{$base-uri}" 
   text-id="{$text-id}"
   output-file-name="{$output-file-name}" target="text">
