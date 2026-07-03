@@ -21,13 +21,15 @@
  <xsl:mode on-no-match="shallow-copy"/>
 
 
+ <xsl:param name="persons" as="element(tei:person)*" required="yes" />
  <xsl:param name="project-suffix" select="'tnl'"/>
 <!-- <xsl:variable name="name-suffix" select="/tei:TEI/tei:teiHeader/tei:fileDesc/tei:titleStmt/tei:title[1]/translate(., '[]', '') ! tokenize(normalize-space()) ! substring(., 1, 1) ! lower-case(.) => string-join()"/>-->
  <xsl:variable name="full-suffix" select="concat('-',  $name-suffix, '-', $project-suffix)"/>
 
  <xsl:key name="person" match="tei:person" use="@xml:id" />
- <xsl:variable name="person-names" select="string-join(//tei:listPerson/tei:person/tei:persName ! replace(., ' ', '\\s'), '|')"/>
- <xsl:variable name="person-regex" select="'^(' || $person-names || 'Angelus\sPrologus|\p{Lu}\w+)(?:[,\.]?)'"/>
+ <xsl:variable name="all-person-names" select="( $persons/tei:persName, //tei:listPerson/tei:person/tei:persName)"/>
+ <xsl:variable name="person-names" select="string-join($all-person-names ! replace(., ' ', '\\s'), '|')"/>
+ <xsl:variable name="person-regex" select="'^(' || $person-names || '|\p{Lu}\w+)(?:[,\.]?)'"/>
  
  <xsl:template match="tei:div[@type='list-of-persons']/tei:p/text()
   (:[not(preceding-sibling::node()[1][self::tei:space])]
@@ -50,6 +52,7 @@
     <tei:ref target="#{$xml-id}" type="person"><xsl:value-of select="$text"/></tei:ref>
     <tei:note>
      <tei:person xml:id="{$xml-id}" sex="UNKNOWN">
+      <xsl:copy-of select="$persons[tei:persName = $text]/@* except @xml:id" />
       <tei:persName xml:lang="la" type="main"><xsl:value-of select="$text"/></tei:persName>
       <tei:note type="bio" />
      </tei:person>

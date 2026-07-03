@@ -19,13 +19,13 @@
  
  <xsl:variable name="persons"  as="map(xs:string, xs:string)">
   <xsl:map>
-   <xsl:for-each select="//tei:listPerson/tei:person">
-    <xsl:map-entry key="tei:persName[@type='main'][1]/string()" select="@xml:id/string()" />
+   <xsl:for-each select="//tei:listPerson/tei:person/tei:persName[@type='main']">
+    <xsl:map-entry key="string()" select="../@xml:id/string()" />
    </xsl:for-each>
   </xsl:map>
  </xsl:variable>
  
- <xsl:variable name="person-names-regex" select="string-join(map:keys($persons), '|')"/>
+ <xsl:variable name="person-names-regex" select="'(' || string-join(map:keys($persons), '|') ! replace(., '\s', '\\s') || ')'"/>
  
  <xsl:template match="tei:argument/tei:p/tei:text[not(*)] | tei:argument/tei:p/tei:hi[not(*)]">
   <xsl:variable name="element" select="."/>

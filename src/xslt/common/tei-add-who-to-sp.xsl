@@ -20,11 +20,15 @@
  <xsl:output method="xml" indent="yes"/>
  <xsl:mode on-no-match="shallow-copy"/>
  <xsl:key name="characters" match="tei:person" use="@xml:id" />
+ <xsl:key name="characters" match="tei:person" use="tei:persName" />
  
  <xsl:template match="tei:sp[not(@who)]">
+  <xsl:variable name="speaker-name" select="let $text := if(tei:speaker[tei:app]) then tei:speaker/tei:app/tei:lem else tei:speaker/text()[1] return translate($text/normalize-space(), '[]:', '')" /> 
   <xsl:variable name="speaker" select="let $text := if(tei:speaker[tei:app]) then tei:speaker/tei:app/tei:lem else tei:speaker/text()[1] return translate($text/normalize-space(), ' .[]:', '-')"/>
   <xsl:variable name="character-id" select="concat('per.', lower-case($speaker), $full-suffix)"/>
-  <xsl:variable name="id" select="if(key('characters', $character-id)) then '#' || $character-id else concat('#', $person-prefix, lower-case($speaker))"/>
+  <xsl:variable name="id" select="if(key('characters', $character-id)) then '#' || $character-id
+   else if(key('characters', $speaker-name)) then '#' || key('characters', $speaker-name)/@xml:id 
+   else concat('#', $person-prefix, lower-case($speaker))"/>
   <xsl:copy>
    <xsl:copy-of select="@*" />
    <xsl:attribute name="who" select="$id" />

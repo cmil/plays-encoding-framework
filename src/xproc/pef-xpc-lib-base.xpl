@@ -230,8 +230,26 @@
   <p:variable name="data-file-path-uri" select="resolve-uri($data-file-path, $base-uri)" />
 
   <p:variable name="file-stem" select="$doc-name" />
-  <p:variable name="listPerson-in-data-file-exists" select="doc($data-file-path-uri)/data/tei:listPerson[1][tei:person]" />
+  <p:variable name="listPerson-in-data-file-exists" select="/data/tei:listPerson[1][tei:person]" href="{$data-file-path-uri}" />
   
+  <p:group xmlns:p="http://www.w3.org/ns/xproc">
+   <p:identity message="========================"/>
+   <p:identity message="|:-    xpef:create-list-of-speakers    -:|"/>
+   <p:identity message="   ::  option  $debug-path = {$debug-path}  :: "/>
+   <p:identity message="   ::  option  $base-uri = {$base-uri}  :: "/>
+   <p:identity message="   ::  option  $doc-name = {$doc-name}  :: "/>
+   <p:identity message="   ::  option  $data-directory-path = {$data-directory-path}  :: "/>
+   <p:identity message="   ::  option  $data-file-path = {$data-file-path}  :: "/>
+   <p:identity message="   ::  variable  $debug = {$debug}  :: "/>
+   <p:identity message="   ::  variable  $line-numbers-file-path = {$line-numbers-file-path}  :: "/>
+   <p:identity message="   ::  variable  $line-numbers-file-path-uri = {$line-numbers-file-path-uri}  :: "/>
+   <p:identity message="   ::  variable  $output-temp-directory = {$output-temp-directory}  :: "/>
+   <p:identity message="   ::  variable  $data-file-path-uri = {$data-file-path-uri}  :: "/>
+   <p:identity message="   ::  variable  $file-stem = {$file-stem}  :: "/>
+   <p:identity message="   ::  variable  $listPerson-in-data-file-exists = {$listPerson-in-data-file-exists}  :: "/>
+   <p:identity message="   ::  variable  $persons = {$persons}  :: " use-when="false()"/>
+   <p:identity message="========================"/>
+  </p:group>
 
   <p:identity name="original" message="   ... tei-assign-line-number: {base-uri(/)}" />
 
@@ -259,7 +277,7 @@
      <p:with-input port="query" href="../xquery/tei-assign-line-number.xquery" />
      <p:with-option name="parameters" select="map {'fix-line-numbers' : $fix-line-numbers }" />
     </p:xquery>
-    <p:store href="{$line-numbers-file-path-uri}" message=" ---- storing {$line-numbers-file-path-uri}" />
+    <p:store href="{$line-numbers-file-path-uri}" message=" ---- storing {$line-numbers-file-path-uri}" serialization="map {'indent' : true()}" />
 
     <p:xslt>
      <p:with-input port="source" pipe="source@creating-list-of-speakers" />
@@ -268,7 +286,7 @@
     </p:xslt>
    </p:otherwise>
   </p:choose>
-
+  <p:identity name="list-person-created-or-loaded" />
 
 
   <p:viewport match="tei:TEI" name="play-text">
@@ -283,7 +301,7 @@
    </p:choose>
 
    <p:filter select="/data/tei:listPerson[1]" name="person-list" />
-
+   <p:identity message="   --- count of filtered persons: {count(tei:person)}"></p:identity>
    <p:replace match="tei:listPerson">
     <p:with-input port="source" pipe="current@play-text" />
     <p:with-input port="replacement" pipe="@person-list" />
@@ -292,14 +310,33 @@
   </p:viewport>
   <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="1" />
 
-
+  <p:variable name="persons" select="/data/persons/tei:person | /data/persons/tei:personGrp" href="{$data-file-path-uri}" />
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../xslt/tei/tei-modify-person-details.xsl" />
+   <p:with-option name="parameters" select="map {'persons' : $persons }" />
+  </p:xslt>
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="5" />
+  
   <p:xslt>
    <p:with-input port="stylesheet" href="../xslt/common/tei-add-who-to-sp.xsl" />
   </p:xslt>
-  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="5" />
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="10" />
+
+  <p:variable name="ids" select="distinct-values(//tei:sp/@who ! tokenize(., '[\s#]')[.])" />
+  <p:identity message="   ---- $ids: {string-join($ids, '; ')} persons: {count($persons[not(@xml:id = $ids)])}" />
+  <p:insert match="tei:listPerson[tei:person]" position="last-child">
+   <p:with-input port="insertion" select="/data/persons/tei:person[not(@xml:id = $ids)] | /data/persons/tei:personGrp[not(@xml:id = $ids)]" href="{$data-file-path-uri}" />
+  </p:insert>
+  
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../xslt/tei/tei-add-external-person.xsl" />
+   <p:with-option name="parameters" select="map {'persons' : $persons }" />
+  </p:xslt>
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="15" />
+  
 
   <xpefc:add-persName-to-speaker p:message="Adding persName to speaker" name="corpus" />
-  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="10" />
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml" step="20" />
 
 
  </p:declare-step>

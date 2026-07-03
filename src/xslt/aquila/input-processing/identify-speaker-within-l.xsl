@@ -20,14 +20,14 @@
  <xsl:output indent="yes" />
  <xsl:mode on-no-match="shallow-copy"/>
  
- <xsl:variable name="speaker-name-regex" select="'\p{Lu}[\p{Ll}\[\]]+((\.|\s+\d|\p{Lu}[\p{Ll}\[\]]+))?:'"/>
+ <xsl:variable name="speaker-name-regex" select="'\p{Lu}[\p{Ll}\[\]]+((\.|\s+\d|\s+\p{Lu}[\p{Ll}\[\]]+))?:'"/>
  <xsl:variable name="speaker-regex" select="'^' || $speaker-name-regex || '$'"/>
  <xsl:variable name="speaker-supplied-regex" select="'^\[' || $speaker-name-regex || '?\]:?$'"/>
  
- <xsl:template match="tei:l[tei:space[1][following-sibling::text()[1][matches(., $speaker-regex)]]]">
+ <xsl:template match="tei:l[tei:space[1][following-sibling::text()[normalize-space() != ''][1][matches(., $speaker-regex)]]]">
   <tei:speaker>
    <xsl:copy-of select="tei:space[1]" />
-   <xsl:copy-of select="tei:space[1]/following-sibling::text()[1]" />
+   <xsl:copy-of select="tei:space[1]/following-sibling::text()[normalize-space() != ''][1]" />
   </tei:speaker>
   <xsl:copy>
    <xsl:copy-of select="@*" />
@@ -35,7 +35,7 @@
   </xsl:copy>
  </xsl:template>
  
- <xsl:template match="tei:l/text()[matches(., $speaker-regex)][preceding-sibling::*[1][self::tei:space]]">
+ <xsl:template match="tei:l/text()[normalize-space() != ''][matches(., $speaker-regex)][preceding-sibling::*[1][self::tei:space]]">
   
  </xsl:template>
  
