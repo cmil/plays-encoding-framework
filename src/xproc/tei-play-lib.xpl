@@ -170,6 +170,13 @@
     <xlog:store output-directory="{$output-directory-path-uri}" base-uri="{$base-uri}" debug="false" file-name="{$output-file-name}.xml" />
    </p:when>
   </p:choose>
+  
+  <p:choose>
+   <p:when test="$target='EVT'">
+    <xevt:tei-to-evt data-file-path="{$data-file-path}" output-directory-path="{$output-directory-path}" output-file-name="{$output-file-name}.xml"
+     debug-path="{$debug-path}" base-uri="{$base-uri}" />
+   </p:when>
+  </p:choose>
 
   <p:choose>
    <p:when test="$target='text'">
