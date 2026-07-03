@@ -163,25 +163,42 @@
   <p:variable name="data-file-path-uri" select="resolve-uri($data-file-path, $base-uri)" />
   <p:variable name="output-file-path-uri" select="resolve-uri(concat($output-directory-path, '/', $output-file-name), $base-uri)" />
 
+  <p:variable name="log-file-name" select="$output-file-name" />
+
   <!-- PIPELINE BODY -->
+  
+  <p:group xmlns:p="http://www.w3.org/ns/xproc">
+   <p:identity message="========================"/>
+   <p:identity message="|:-    xevt:tei-to-evt    -:|"/>
+   <p:identity message="   ::  option  $debug-path = {$debug-path}  :: "/>
+   <p:identity message="   ::  option  $base-uri = {$base-uri}  :: "/>
+   <p:identity message="   ::  option  $data-file-path = {$data-file-path}  :: "/>
+   <p:identity message="   ::  option  $output-directory-path = {$output-directory-path}  :: "/>
+   <p:identity message="   ::  option  $output-file-name = {$output-file-name}  :: "/>
+   <p:identity message="   ::  variable  $debug = {$debug}  :: "/>
+   <p:identity message="   ::  variable  $debug-path-uri = {$debug-path-uri}  :: "/>
+   <p:identity message="   ::  variable  $data-file-path-uri = {$data-file-path-uri}  :: "/>
+   <p:identity message="   ::  variable  $output-file-path-uri = {$output-file-path-uri}  :: "/>
+   <p:identity message="========================"/>
+  </p:group>
   <xpefc:add-persName-to-speaker debug-path="{$debug-path}" base-uri="{$base-uri}" />
 
-  <xlog:store p:use-when="$enable-logging" output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="1" />
+  <xlog:store output-directory="{$debug-path}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="1" />
 
   <p:delete match="//*[@source='#dracor']" />
-  <xlog:store p:use-when="$enable-logging" output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="2" />
+  <xlog:store output-directory="{$debug-path}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="5" />
 
   <p:viewport match="tei:TEI[tei:text[@n=('Text edice', 'Překlad', 'Synopse')]]">
    <xevt:move-front />
   </p:viewport>
-  <xlog:store p:use-when="$enable-logging" output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="3" />
+  <xlog:store output-directory="{$debug-path}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="10" />
 
 
   <xevt:divide-texts output-directory-path="{$output-directory-path}" debug-path="{$debug-path}" base-uri="{$base-uri}" />
-  <xlog:store p:use-when="$enable-logging" output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="4" />
+  <xlog:store output-directory="{$debug-path}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="15" />
 
   <xevt:include-texts data-file-path="{$data-file-path}" debug-path="{$debug-path}" base-uri="{$base-uri}" />
-  <xlog:store p:use-when="$enable-logging" output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="5" />
+  <xlog:store output-directory="{$debug-path}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="20" />
 
   <p:choose>
    <p:when test="not(empty($output-directory-path) or empty($output-file-name))">
