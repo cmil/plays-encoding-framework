@@ -399,17 +399,23 @@
   </p:xslt>
   <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="72" />
   
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../../xslt/tei/tei-move-closer-inside-div.xsl" />
+  </p:xslt>
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="73" />
+  
+  
   <xpef:identify-first-verses>
    <p:with-input port="job-ticket" pipe="job-ticket@tei-postprocessing" />
   </xpef:identify-first-verses>
-  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="73" />
+  <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="74" />
 
   <xpef:create-list-of-speakers doc-name="{$file-stem}" data-directory-path="{$data-directory-path}" data-file-path="{$data-file-path}" debug-path="{$debug-path}" base-uri="{$base-uri}">
    <p:with-input port="job-ticket" pipe="job-ticket@tei-postprocessing" />
   </xpef:create-list-of-speakers>
   <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="75" />
   
-  <xd2t:person-list-postprocessing doc-name="{$file-stem}" data-directory-path="{$data-directory-path}" debug-path="{$debug-path}" base-uri="{$base-uri}">
+  <xd2t:person-list-postprocessing doc-name="{$file-stem}" data-directory-path="{$data-directory-path}" data-file-path="{$data-file-path}" debug-path="{$debug-path}" base-uri="{$base-uri}">
    <p:with-input port="job-ticket" pipe="job-ticket@tei-postprocessing" />
   </xd2t:person-list-postprocessing>
   <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="80" />
@@ -470,20 +476,23 @@
   
   <p:option name="doc-name" as="xs:string" required="true" />
   <p:option name="data-directory-path" as="xs:anyURI" required="true" />
+  <p:option name="data-file-path" as="xs:anyURI" required="true"/>
   
   <!-- VARIABLES -->
   <p:variable name="debug" select="$debug-path || '' ne ''" />
   <p:variable name="debug-path-uri" select="resolve-uri($debug-path, $base-uri)" />
+  <p:variable name="data-file-uri" select="p:urify($data-file-path, $base-uri)" />
   
   <p:variable name="output-temp-directory" select="$debug-path || '/' || $doc-name || '/' || 'person-list-postprocessing'" />
   <p:variable name="file-stem" select="$doc-name" />
   
   
+  <p:variable name="persons" select="/data/persons/tei:person" href="{$data-file-uri}"/>
   <p:xslt>
    <p:with-input port="stylesheet" href="../../xslt/rochotius/tei-postprocessing/rochotius-tei-identify-persons-in-list-of-persons.xsl" />
+   <p:with-option name="parameters" select="map {'persons' : $persons}" />
   </p:xslt>
   <xlog:store output-directory="{$output-temp-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$file-stem}.xml"  step="1" />
-  
   
   <p:xslt>
    <p:with-input port="stylesheet" href="../../xslt/rochotius/tei-postprocessing/rochotius-tei-merge-notes-in-list-of-persons.xsl" />
