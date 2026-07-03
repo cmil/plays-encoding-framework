@@ -119,7 +119,7 @@
 
  <pattern>
   <title>Check of subsequent line numbers</title>
-  <p>Checks if line are numbered sequentialy and if lines with the same number (@n) contains appropriate value of the @part attribute.</p>
+  <p>Checks if lines are numbered sequentially and if lines with the same number (@n) contains appropriate value of the @part attribute.</p>
   <rule context="tei:l">
    <let name="prev" value="./preceding::tei:l[1]" />
    <let name="next" value="./following::tei:l[1]" />
@@ -127,7 +127,7 @@
     Line number must be assigned. 
    </assert>
    <assert test="f:is-line-number-valid($prev, ., $next)"> 
-    Line numbers must represent sequence (prev: <value-of select="$prev/@n" />, cur: <value-of select="@n" />, next: <value-of select="$next/@n" />) 
+    Line numbers must represent sequence (prev: <value-of select="$prev/@n" />, current: <value-of select="@n" />, next: <value-of select="$next/@n" />) 
    </assert>
    <assert test="if (@part) then f:is-line-part-valid($prev, ., $next) else true()" role="info"> 
     Found sequence <value-of select="$prev/@part" />, <value-of select="@part" />, and <value-of select="$next/@part" />. 
