@@ -101,6 +101,8 @@
    <p:with-input port="stylesheet" href="../xslt/dracor/tei-change-div-to-stage.xsl" />
   </p:xslt>
   
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$text-id}.xml"  step="11" />
+  
   <p:xslt>
    <p:with-input port="stylesheet" href="../xslt/dracor/tei-change-argument-to-stage.xsl" />
   </p:xslt>
@@ -138,10 +140,12 @@
   </p:insert>
   <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$text-id}.xml"  step="18" />
 
+ <p:group use-when="false()">
   <p:insert match="tei:listPerson" position="last-child">
    <p:with-input port="insertion" select="/data/persons/tei:person"  href="{$data-file-path-uri}" />
   </p:insert>
   <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$text-id}.xml"  step="20" />
+ </p:group>
   
 
   <p:delete match="tei:listPerson[not(tei:person)]" />
@@ -151,20 +155,29 @@
   <p:delete match="tei:listPerson/tei:person/tei:persName/@xml:lang" />
   <p:delete match="tei:listPerson/tei:person/tei:persName/@type" />
   <p:delete match="tei:listPerson/tei:person/tei:occupation" />
+
+  <p:delete match="tei:listPerson/tei:personGrp/tei:persName/@xml:lang" />
+  <p:delete match="tei:listPerson/tei:personGrp/tei:persName/@type" />
+  <p:delete match="tei:listPerson/tei:personGrp/tei:occupation" />
   
   <p:delete match="tei:sourceDesc/tei:listWit" />
   
-  <!--<p:variable name="females" select="tokenize(/data/persons/females, '[,\s]+')[.]" href="{$data-file-path-uri}"/>-->
-  <p:variable name="females" select="'(&#34;' || replace(/data/persons/females, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="castGroups" select="'(&#34;' || replace(/data/persons/castGroup, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="persNames" select="//tei:castList/tei:castItem[*[. = $castGroups]]"/>
+  <p:rename match="tei:castList/tei:castItem[*[. = {$castGroups}]]" new-name="tei:castGroup" message="   ---- renaming castItem to castGroup : {string-join($castGroups, '; ')}; $persNames: {count($persNames)}"></p:rename>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$text-id}.xml" debug="{$debug}" step="21" />
   
-  <!--<p:variable name="personGrps" select="tokenize(/data/persons/females, '[,\s]+')[.]" href="{$data-file-path-uri}"/>-->
-  <p:variable name="personGrps" select="'(&#34;' || replace(/data/persons/personGrp, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="roleDescs" select="'(&#34;' || replace(/data/persons/roleDesc[@type='simple'], ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="persNames" select="//tei:castList/tei:*/tei:role[. = $roleDescs]"/>
+  <p:rename match="tei:castList/tei:*/tei:role[. = {$roleDescs}]" new-name="tei:roleDesc" message="   ---- renaming role to roleDesc : {string-join($castGroups, '; ')}; $persNames: {count($persNames)}"></p:rename>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$text-id}.xml" debug="{$debug}" step="22" />
   
-  <p:rename match="tei:listPerson/tei:person[tei:persName[. = {$personGrps}]]" new-name="tei:personGrp" />
-  
-  <p:variable name="persNames" select="//tei:listPerson/tei:person[tei:persName[. = $females]]"/>
-  
-  <p:add-attribute match="tei:listPerson/tei:person[tei:persName[. = {$females}]]" attribute-name="sex" attribute-value="FEMALE" message="   ---- replacing females : {string-join($females, '; ')}; $persNames: {count($persNames)} " />
+  <p:variable name="roleDescs" select="/data/persons/roleDesc[@type='multiple']" href="{$data-file-path-uri}"/>
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../xslt/dracor/tei-change-role.xsl" />
+   <p:with-option name="parameters" select="map {'roleDesc' : $roleDescs }" />
+  </p:xslt>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$text-id}.xml" debug="{$debug}" step="23" />
 
   <p:delete match="tei:TEI/tei:standOff" />
   <p:insert match="tei:teiHeader">
@@ -174,7 +187,6 @@
   <p:delete match="tei:encodingDesc" />
   
   <!-- TODO: do <standOff> -->
-  <p:delete match="tei:profileDesc/tei:creation" />
   <p:delete match="tei:profileDesc/tei:langUsage" />
   
   <p:delete match="tei:body/tei:div[@type='title']"/>
@@ -207,11 +219,21 @@
   <p:delete match="tei:note[not(@n)]" />
   <p:add-attribute match="tei:note[@n]" attribute-name="place" attribute-value="foot" use-when="false()" />
   <p:add-attribute match="tei:emph[@rend='italic' or @rendition='italic']" attribute-name="style" attribute-value="font-style: italic;" use-when="false()" />
-  <p:rename match="@rendition" new-name="rend"></p:rename>
+  <p:rename match="@rendition" new-name="rend" />
+  <!--<p:set-attributes match="tei:*[matches(@rend, 'indent\d')]" attributes="map{'rend': 'indent'}"/>-->
   <!--<p:delete match="tei:emph/@rend[. ='italic']" />
   <p:delete match="tei:emph/@rendition[. ='italic']" />-->
   
   <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$text-id}.xml"  step="30" />
+  
+  <p:variable name="fixes" select="/data/dracor/fixes/fix" href="{$data-file-path-uri}"/>
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../xslt/dracor/apply-fixes-for-dracor.xsl" />
+   <p:with-option name="parameters" select="map {'fixes' : $fixes}" />
+  </p:xslt>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" debug="{$debug}" file-name="{$text-id}.xml"  step="31" />
+  
+  
   
   <p:xslt>
    <p:with-input port="stylesheet" href="../xslt/dracor/change-latin-numbers-to-arabic.xsl" />
@@ -235,6 +257,7 @@
   
   <!-- ??? -->
   <p:delete match="tei:space" />
+  <p:delete match="tei:*/tei:lb" />
   
   <!-- SKIP -->
   <p:delete match="tei:editionStmt" use-when="false()" />

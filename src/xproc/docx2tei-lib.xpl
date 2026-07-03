@@ -174,8 +174,44 @@
   <!-- PIPELINE BODY -->
   
   <p:delete match="tei:div[not(node())]" />
-  
+
+  <!--<p:variable name="personGrps" select="tokenize(/data/persons/females, '[,\s]+')[.]" href="{$data-file-path-uri}"/>-->
+  <p:variable name="personGrps" select="'(&#34;' || replace(/data/persons/personGrp, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="persNames" select="//tei:listPerson/tei:person[tei:persName[. = $personGrps]]"/>
+  <p:rename match="tei:listPerson/tei:person[tei:persName[. = {$personGrps}]]" new-name="tei:personGrp" message="   ---- changing tei:person to tei:personGrp: {string-join($personGrps, '; ')}; $persNames: {count($persNames)} "/>
   <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="1" />
+  
+  <!--<p:variable name="females" select="tokenize(/data/persons/females, '[,\s]+')[.]" href="{$data-file-path-uri}"/>-->
+  <p:variable name="females" select="'(&#34;' || replace(/data/persons/females, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="persNames" select="//tei:listPerson/tei:person[tei:persName[. = $females]]"/>
+  <p:add-attribute match="tei:listPerson/tei:person[tei:persName[. = {$females}]]" attribute-name="sex" attribute-value="FEMALE" message="   ---- replacing females : {string-join($females, '; ')}; $persNames: {count($persNames)} " />
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="5" />
+  
+  <p:variable name="deletes" select="'(&#34;' || replace(/data/persons/delete, ',\s+', '&#34;, &#34;') || '&#34;)'" href="{$data-file-path-uri}"/>
+  <p:variable name="persNames" select="//tei:listPerson/tei:person[tei:persName[. = $deletes]]"/>
+  <p:delete match="tei:listPerson/tei:person[tei:persName[. = {$deletes}]]" message="   ---- deleting false persons : {string-join($deletes, '; ')}; $persNames: {count($persNames)}"></p:delete>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="10" />
+    
+
+  <p:documentation>
+   <p>Přiřazení obrázků ke stranám.</p>
+   <p>Vytvoří se element <b>facsimile</b> se seznamem souborů s obrázky jednotlivých stran.</p>
+   <p>V elementu <b>pb</b> se vytvří atrubut <b>@facs</b> s odkazem na soubor s obrázkem odpovídající strany.</p>
+   <p>Jako parametry lze nastavit:</p>
+   <ul>
+    <li><i>path</i>: výchozí cestu k souborům (musí končit lomítkem);</li>
+    <li><i>extension</i>: přípponá souborů (bez úvodní tečky)</li>
+   </ul>
+   <p>Jméno se generuje z identifikátoru elementu <b>pb</b> přidáním výchozí cesty a přípony.</p>
+  </p:documentation>
+  <p:xslt>
+   <p:with-input port="stylesheet" href="../xslt/tei/tei-add-facsimile.xsl"/>
+  </p:xslt>
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="25" />
+  
+  <xxml:clean-namespaces />
+  
+  <xlog:store output-directory="{$log-output-directory}" base-uri="{$base-uri}" file-name="{$log-file-name}" debug="{$debug}" step="30" />
   
  </p:declare-step>
 
